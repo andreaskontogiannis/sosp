@@ -1,6 +1,6 @@
 # The Computational Complexity of Avoiding Strict Saddle Points in Non-Convex Constrained Optimization
 
-The authors provide the Wolfram Mathematica files containing all the queries used for proving the non-existence of approximate SOSPs in Groups A-G and 1-4. Specifically inside the directory ./Groups you can find:
+The authors provide the Wolfram Mathematica files containing all the queries used for proving the non-existence of approximate SOSPs in Groups A-G and 1-4. To run these queries, one must simply run each one of the following files. Specifically inside the directory ./Groups you can find:
 
 - Group-A.nb
 - Group-B.nb
