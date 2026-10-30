@@ -1,0 +1,1834 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     78369,       1826]
+NotebookOptionsPosition[     62885,       1514]
+NotebookOutlinePosition[     69326,       1656]
+CellTagsIndexPosition[     68855,       1640]
+WindowTitle->SOSP verification
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["SOSP: verification following the proof", "Title",ExpressionUUID->"5eb3e363-a93a-6c4a-a593-90144b416a7a"],
+
+Cell["\<\
+Exact exclusion checks | Exhaustive cell patterns | Matching to \
+representatives\
+\>", "Subtitle",ExpressionUUID->"fbabc7df-73f6-a744-a487-9ac769db138e"],
+
+Cell["\<\
+This notebook supports the unified group analysis and classification in the \
+paper. It uses the same corner data, rectangles, exclusion inequalities, and \
+transformations. The classification first lists the patterns produced by the \
+piecewise grid formulas, then checks the hypotheses of the group \
+representatives. \
+\>", "Text",
+ CellChangeTimes->{{4.002182945252041*^9, 4.0021829905169163`*^9}, {
+  4.0021954485202217`*^9, 
+  4.0021954489782143`*^9}},ExpressionUUID->"8cb39cc9-374c-714e-aa39-\
+5be1ded510d6"],
+
+Cell[TextData[{
+ "Start with a fresh kernel and choose Evaluation -> Evaluate Notebook. All \
+input cells are open. Explanations are text cells; executable cells use \
+ordinary loops, arrays, and exact symbolic algebra. ",
+ StyleBox["array[[k]]",
+  FontFamily->"Courier"],
+ " selects an entry, ",
+ StyleBox["Table",
+  FontFamily->"Courier"],
+ " builds an array, ",
+ StyleBox["/.",
+  FontFamily->"Courier"],
+ " substitutes a value, and ",
+ StyleBox["Which",
+  FontFamily->"Courier"],
+ " / ",
+ StyleBox["Switch",
+  FontFamily->"Courier"],
+ " express a list of cases. No functional-programming shorthand is used."
+}], "Text",
+ CellChangeTimes->{{4.002182934430832*^9, 
+  4.0021829363344803`*^9}},ExpressionUUID->"6d2c65cb-f52d-7f44-a49c-\
+6e42ef82f1c3"],
+
+Cell[CellGroupData[{
+
+Cell["1. Data from the paper", "Section",ExpressionUUID->"3fe5af90-c501-5642-bc06-53f1aaf49954"],
+
+Cell[TextData[{
+ "The corner order throughout is bottom-left, bottom-right, top-left, \
+top-right. The names left, right, up, down refer to descent arrows; the \
+stored vectors are gradients, so their signs are reversed. ",
+ StyleBox["cornerData",
+  FontFamily->"Courier"],
+ " transcribes the table \"Exact interpolation data\"; ",
+ StyleBox["regions",
+  FontFamily->"Courier"],
+ " transcribes the rectangle table. The accuracy is exactly 10^-10."
+}], "Text",ExpressionUUID->"0e658cde-4e8e-0d4f-aeaa-7dfda4c8c0ee"],
+
+Cell["\<\
+seconds=30; useResolve=True;
+epsG=1/10^10; epsH=1/10^10;
+Clear[x,y,a,b,aa,bb,cc,dd,u,v,t];
+left = {1/2, 0};
+right = {-1/2, 0};
+up = {0, -1/2};
+down = {0, 1/2};\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellChangeTimes->{{4.002257601548151*^9, 4.0022576031658707`*^9}},
+ CellTags->"Settings",
+ CellLabel->
+  "In[469]:=",ExpressionUUID->"548dad49-25a7-df46-b419-45576ab99a11"],
+
+Cell["\<\
+cornerData = {
+  {1, {cc, dd, aa, bb}, {right, right, right, right}},
+  {2, {cc, dd, aa, bb}, {up, up, right, right}},
+  {3, {cc, dd, aa, bb}, {up, up, right, up}},
+  {4, {cc, dd, aa, bb}, {right, up, up, up}},
+  {\"A\", {a+b-1, a+b, 0, a}, {up, up, left, right}},
+  {\"B\", {b-1, b, 0, a},     {up, left, up, right}},
+  {\"C\", {0, a-2, a, a-1},   {left, right, down, right}},
+  {\"D\", {0, a, -1, -2},     {up, right, up, up}},
+  {\"E\", {0, a-1, -1, a},    {up, right, up, right}},
+  {\"F\", {0, 1, a+1, a},     {left, left, right, down}},
+  {\"G\", {0, a-1, -1, a},    {up, down, up, down}}
+};\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"GroupData",
+ CellLabel->
+  "In[476]:=",ExpressionUUID->"2aa46a6d-92f7-b44f-9dc0-30443ab2bc23"],
+
+Cell["\<\
+regions = {
+  {1, {0,1,0,1},                 \"Gx < -epsG\"},
+  {2, {0,1,0,3/4},               \"Gy < -epsG\"},
+  {2, {0,1,3/4,1},               \"Gx < -epsG\"},
+  {3, {0,1/2,0,3/4},             \"Gy < -epsG\"},
+  {3, {0,1/2,3/4,1},             \"Gx < -epsG\"},
+  {3, {1/2,1,0,1},               \"Gy < -epsG\"},
+  {4, {0,1/2,0,1/4},             \"Gx < -epsG\"},
+  {4, {0,1/2,1/4,1},             \"Gy < -epsG\"},
+  {4, {1/2,1,0,1},               \"Gy < -epsG\"},
+
+  {\"A\", {0,1,0,99/100},          \"Gy < -epsG\"},
+  {\"A\", {0,99/100,99/100,1},     \"Gx > epsG\"},
+  {\"A\", {99/100,1,99/100,1},     \"Hxx < -epsH\"},
+  {\"B\", {0,1/10,0,1},            \"Gy < -epsG\"},
+  {\"B\", {1/10,9/10,0,1},         \"Gx > epsG\"},
+  {\"B\", {9/10,1,0,1/10},         \"Gx > epsG\"},
+  {\"B\", {9/10,1,1/10,9/10},      \"Gy > epsG\"},
+  {\"B\", {9/10,1,9/10,1},         \"Hxx < -epsH\"},
+  {\"C\", {0,99/100,0,1/100},      \"Gx > epsG\"},
+  {\"C\", {0,99/100,1/100,1},      \"Gy > epsG\"},
+  {\"C\", {99/100,1,0,1},          \"Hxx < -epsH\"},
+  {\"D\", {0,1,1/100,1},           \"Gy < -epsG\"},
+  {\"D\", {0,1/10,0,1/100},        \"Gy < -epsG\"},
+  {\"D\", {1/10,1/2,0,1/100},      \"Gx > epsG\"},
+  {\"D\", {1/2,1,0,1/100},         \"Hxx < -epsH\"},
+  {\"E\", {0,1/10,0,1},            \"Gy < -epsG\"},
+  {\"E\", {1/10,9/10,0,1},         \"Gx > epsG\"},
+  {\"E\", {9/10,1,0,1},            \"Hxx < -epsH\"},
+  {\"F\", {0,1,0,21/50},           \"Gx > epsG\"},
+  {\"F\", {0,1,21/50,99/100},      \"Gy > epsG\"},
+  {\"F\", {0,17/20,99/100,1},      \"Gx < -epsG\"},
+  {\"F\", {17/20,1,99/100,1},      \"Gy > epsG\"},
+  {\"G\", {0,1/100,0,1},           \"Gy < -epsG\"},
+  {\"G\", {1/100,99/100,0,1},      \"Gx > epsG\"},
+  {\"G\", {99/100,1,0,1},          \"Gy > epsG\"}
+};\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"Regions",
+ CellLabel->
+  "In[477]:=",ExpressionUUID->"5cb101e5-3784-dd4e-bbac-44c6447e4925"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["2. Verify the SOSP exclusion criteria", "Section",ExpressionUUID->"9e36adf8-f135-1349-a89b-107b6556d590"],
+
+Cell["\<\
+Reconstruct the paper's biquintic polynomial from the corner values, \
+gradients, and common corner Hessian. For Groups 1-4, sigma=t-1/2 with \
+0<=t<=1; for A-G, sigma=-1/2. Differentiate to obtain Gx, Gy, and Hxx. Each \
+assigned rectangle uses exactly the signed gradient or negative-curvature \
+inequality stated in the paper.\
+\>", "Text",ExpressionUUID->"08856e4e-3bfb-c141-bb94-12775e4ac061"],
+
+Cell["\<\
+hx = 6*x^5 - 15*x^4 + 10*x^3;
+hy = 6*y^5 - 15*y^4 + 10*y^3;
+w0x = x - 6*x^3 + 8*x^4 - 3*x^5;
+w1x = -4*x^3 + 7*x^4 - 3*x^5;
+w0y = y - 6*y^3 + 8*y^4 - 3*y^5;
+w1y = -4*y^3 + 7*y^4 - 3*y^5;
+valueBasis = {(1-hx)*(1-hy), hx*(1-hy), (1-hx)*hy, hx*hy};
+xBasis = {w0x*(1-hy), w1x*(1-hy), w0x*hy, w1x*hy};
+yBasis = {(1-hx)*w0y, hx*w0y, (1-hx)*w1y, hx*w1y};\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"InterpolationBasis",
+ CellLabel->
+  "In[478]:=",ExpressionUUID->"15dce28a-cc7e-d94e-a4c6-02630c59016b"],
+
+Cell[CellGroupData[{
+
+Cell["The affine coefficient test", "Subsection",ExpressionUUID->"d34ff8f9-4ae7-1e46-b62c-460331695d0a"],
+
+Cell["\<\
+The nonnegative variables u and v denote the excess above the paper's lower \
+bounds on corner differences or color gaps. For Group B, use a=9995*10^9+u \
+and b/a=(1-t)(99/10000)+t(101/9995). At each required endpoint t=0,1, the \
+signed margin must have the identity p=p0+u*pu+v*pv, with p0, pu, pv rational \
+polynomials in x,y. Check p0>0, pu>=0, pv>=0 on the assigned rectangle. \
+Affine dependence in t covers the interval. These are precisely the paper's \
+coefficient conditions, including the rectangle edges.\
+\>", "Text",
+ CellChangeTimes->{
+  4.0022569872051945`*^9},ExpressionUUID->"1a22620e-a6e0-a146-bd90-\
+d1bc1fad3f46"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Two exact checks of the same inequalities", "Subsection",ExpressionUUID->"d2bb261a-ae5a-fb4c-8fce-02f464bb8bda"],
+
+Cell[TextData[{
+ "The main loop places the optional ",
+ StyleBox["Resolve",
+  FontFamily->"Courier"],
+ " call and the Bernstein alternative next to each other. Set ",
+ StyleBox["useResolve=True",
+  FontFamily->"Courier"],
+ " to run both. Each call has a time limit given by ",
+ StyleBox["seconds",
+  FontFamily->"Courier"],
+ "; an unevaluated or timed-out result does not certify an inequality. The \
+default uses Bernstein coefficients only, without changing the polynomial \
+conditions being tested."
+}], "Text",ExpressionUUID->"57dcdd7a-aab6-ed48-9c43-c46d64c745a7"],
+
+Cell["\<\
+For the Bernstein check, map a rectangle to [0,1]^2 and write q(s,t)=sum \
+c[k,l] s^k t^l with degrees m,n. Its Bernstein coefficient at (i,j) is \
+sum[k<=i,l<=j] c[k,l] binomial(i,k) binomial(j,l)/(binomial(m,k) \
+binomial(n,l)). The Bernstein basis is nonnegative and sums to one, so the \
+least coefficient is a rigorous lower bound, including the boundary. A \
+positive lower bound certifies p0>0; nonnegative lower bounds certify \
+pu,pv>=0. No floating-point arithmetic is used.\
+\>", "Text",ExpressionUUID->"f7f9ce92-6a56-5a48-b891-db30ae1c2099"],
+
+Cell["\<\
+The coverage check verifies that the certified closed rectangles lie in the \
+unit square, have disjoint interiors, and have total area one. Their union \
+therefore covers the square. The separate constrained-boundary argument \
+remains the one in the paper.\
+\>", "Text",ExpressionUUID->"2807b0ac-9a27-3d4a-839e-6cd4a9f8c2cc"],
+
+Cell["\<\
+rationalPolynomialQ[poly_] := Module[{c, i, j, ok = True},
+  If[!PolynomialQ[poly, {x, y}], Return[False]];
+  c = CoefficientList[poly, {x, y}];
+  For[i = 1, i <= Length[c], i++,
+    For[j = 1, j <= Length[c[[i]]], j++,
+      If[!IntegerQ[c[[i,j]]] && Head[c[[i,j]]] =!= Rational, ok = False]]];
+  ok
+];
+
+bernsteinMinimum[poly_, box_] := Module[{s, t, q, c, m, n, i, j, k, l, b, \
+lower},
+  q = Expand[poly /. {x -> box[[1]] + (box[[2]]-box[[1]]) s,
+                     y -> box[[3]] + (box[[4]]-box[[3]]) t}];
+  If[q === 0, Return[0]];
+  c = CoefficientList[q, {s, t}];
+  m = Length[c]-1; n = Length[c[[1]]]-1; lower = Infinity;
+  For[i = 0, i <= m, i++,
+    For[j = 0, j <= n, j++,
+      b = 0;
+      For[k = 0, k <= i, k++,
+        For[l = 0, l <= j, l++,
+          b += c[[k+1,l+1]] Binomial[i,k] Binomial[j,l]/
+                 (Binomial[m,k] Binomial[n,l])]];
+      lower = Min[lower, b]]];
+  lower
+];
+
+partitionQ[boxes_] := Module[{area = 0, i, j, u, v, ok = True},
+  If[Length[boxes] == 0, Return[False]];
+  For[i = 1, i <= Length[boxes], i++,
+    u = boxes[[i]];
+    If[!TrueQ[0 <= u[[1]] < u[[2]] <= 1 && 0 <= u[[3]] < u[[4]] <= 1],
+      ok = False];
+    area += (u[[2]]-u[[1]]) (u[[4]]-u[[3]]);
+    For[j = 1, j < i, j++,
+      v = boxes[[j]];
+      If[Min[u[[2]],v[[2]]] > Max[u[[1]],v[[1]]] &&
+         Min[u[[4]],v[[4]]] > Max[u[[3]],v[[3]]], ok = False]]];
+  ok && area == 1
+];
+\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"PolynomialHelpers",
+ CellLabel->
+  "In[487]:=",ExpressionUUID->"37f9471c-cbc1-d240-9062-884532bbf0f8"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+results = {}; bernsteinBounds = {}; summary = {}; allPassed = True;
+For[groupIndex = 1, groupIndex <= Length[cornerData], groupIndex++,
+  group = cornerData[[groupIndex,1]];
+  values = cornerData[[groupIndex,2]]; gradients = cornerData[[groupIndex,3]];
+  sigma = -1/2;
+  If[IntegerQ[group], sigma = t-1/2];
+  f = sigma/2 (x^2 (1-x)^2 + y^2 (1-y)^2);
+  For[k = 1, k <= 4, k++,
+    f += values[[k]] valueBasis[[k]] + gradients[[k,1]] xBasis[[k]] +
+         gradients[[k,2]] yBasis[[k]]];
+  gx = D[f,x]; gy = D[f,y]; hxx = D[f,{x,2}];
+  provedRectangles = {}; total = 0; resolvePassed = 0; bernsteinPassed = 0;
+  For[rowIndex = 1, rowIndex <= Length[regions], rowIndex++,
+    row = regions[[rowIndex]];
+    If[row[[1]] =!= group, Continue[]];
+    rectangle = row[[2]]; name = row[[3]]; total++;
+    p = Switch[name, \"Gx > epsG\", gx-epsG, \"Gx < -epsG\", -gx-epsG,
+      \"Gy > epsG\", gy-epsG, \"Gy < -epsG\", -gy-epsG, \"Hxx < -epsH\", \
+-hxx-epsH];
+    rules = {a -> 10^20+u};
+    If[group == \"A\", rules = {a -> 10^40+u, b -> 10^40+v}];
+    If[group == \"B\", rules = {a -> 9995*10^9+u,
+      b -> (9995*10^9+u) (99/10000+t (101/9995-99/10000))}];
+    If[IntegerQ[group],
+      rules = {cc -> aa+1+u, dd -> bb+1+v};
+      If[name == \"Gx < -epsG\",
+        bottom = 1; top = 1;
+        If[group == 2 || group == 3, bottom = -1];
+        If[group == 4, top = -1];
+        rules = {cc -> dd+bottom+u, aa -> bb+top+v}]];
+    p = Expand[p /. rules];
+    domain = rectangle[[1]] <= x <= rectangle[[2]] && rectangle[[3]] <= y <= \
+rectangle[[4]];
+    validForm = PolynomialQ[p,{x,y,u,v,t}] && Expand[D[p,{t,2}]] === 0;
+    conditions = True; triples = {}; endpoints = {0};
+    If[!FreeQ[p,t], endpoints = {0,1}];
+    For[e = 1, e <= Length[endpoints], e++,
+      endpoint = Expand[p /. t -> endpoints[[e]]];
+      p0 = Expand[endpoint /. {u -> 0, v -> 0}];
+      pu = Coefficient[endpoint,u]; pv = Coefficient[endpoint,v];
+      validForm = validForm && rationalPolynomialQ[p0] &&
+        rationalPolynomialQ[pu] && rationalPolynomialQ[pv] &&
+        Expand[endpoint-p0-u pu-v pv] === 0;
+      conditions = conditions && p0 > 0 && pu >= 0 && pv >= 0;
+      AppendTo[triples,{p0,pu,pv}]];
+
+    answer = Missing[\"Skipped\"];
+    If[useResolve && TrueQ[validForm],
+      statement = ForAll[{x,y},Evaluate[Implies[domain,conditions]]];
+      answer = TimeConstrained[Resolve[statement,Reals],seconds,$Aborted]];
+    bernsteinAnswer = False;
+    If[TrueQ[validForm],
+      bernsteinAnswer = TimeConstrained[
+        boundPassed = True;
+        For[e = 1, e <= Length[triples], e++,
+          lower = {0,0,0};
+          For[k = 1, k <= 3, k++,
+            lower[[k]] = bernsteinMinimum[triples[[e,k]],rectangle]];
+          AppendTo[bernsteinBounds,{group,rectangle,name,lower}];
+          If[!TrueQ[lower[[1]] > 0 && lower[[2]] >= 0 && lower[[3]] >= 0],
+            boundPassed = False]];
+        boundPassed, seconds, $Aborted]];
+    AppendTo[results,{group,rectangle,name,answer,bernsteinAnswer}];
+    If[TrueQ[answer], resolvePassed++];
+    If[TrueQ[bernsteinAnswer], bernsteinPassed++];
+    If[TrueQ[answer] || TrueQ[bernsteinAnswer], \
+AppendTo[provedRectangles,rectangle]]
+  ];
+  coverage = partitionQ[provedRectangles]; allPassed = allPassed && \
+TrueQ[coverage];
+  AppendTo[summary,{group,resolvePassed,bernsteinPassed,total,coverage}];
+  Print[\"Group \",group,\": square covered = \",coverage]
+];
+Print[Grid[Prepend[summary,
+  {\"Group\",\"Resolve\",\"Bernstein\",\"Rectangles\",\"Square \
+covered\"}],Frame -> All]];
+Print[\"All polynomial groups verified: \",allPassed];
+\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "In[493]:=",ExpressionUUID->"d9ac62f4-d805-8d49-bb91-8b83ac313323"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", 1, ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.0022576110742645`*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"7e45086c-d377-e74f-ac03-742b0e5c2775"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", 2, ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.002257611220646*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"d5de4f73-c740-174c-ac2e-19eb7c5b3190"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "3", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", 3, ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.002257611410946*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"7e8b4e99-e872-5f44-a819-aa36a851f0ad"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "4", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", 4, ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.0022576116170216`*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"ec026297-c75c-844b-9784-82ffa633eb53"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "\<\"A\"\>", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", "A", ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.0022576119005547`*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"7ffcd311-f2fb-9c43-b63b-762567a2dd7f"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "\<\"B\"\>", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", "B", ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.002257612583864*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"81a1d601-9c8b-814d-9d55-dc8ca014e8c8"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "\<\"C\"\>", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", "C", ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.002257612726841*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"faa7c541-d03f-d24f-a07a-0f48a6c200b5"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", "D", ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.0022576129329014`*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"fb415e8d-50be-a34c-b2c1-c73e6dc5b129"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "\<\"E\"\>", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", "E", ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.002257613049019*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"9833272d-ca68-104f-bd99-1b47cd1b11b9"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "\<\"F\"\>", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", "F", ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.0022576132343845`*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"e3c1b119-27a7-724c-9fee-beca4282c44e"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Group \"\>", "\[InvisibleSpace]", "\<\"G\"\>", 
+   "\[InvisibleSpace]", "\<\": square covered = \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Group ", "G", ": square covered = ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.0022576133140297`*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"7ff50a4d-cde0-144e-a2c1-6e289695ad43"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {"\<\"Group\"\>", "\<\"Resolve\"\>", "\<\"Bernstein\"\>", "\<\"Rectangles\
+\"\>", "\<\"Square covered\"\>"},
+    {"1", "1", "1", "1", "True"},
+    {"2", "2", "2", "2", "True"},
+    {"3", "3", "3", "3", "True"},
+    {"4", "3", "3", "3", "True"},
+    {"\<\"A\"\>", "3", "3", "3", "True"},
+    {"\<\"B\"\>", "5", "5", "5", "True"},
+    {"\<\"C\"\>", "3", "3", "3", "True"},
+    {"\<\"D\"\>", "4", "4", "4", "True"},
+    {"\<\"E\"\>", "3", "3", "3", "True"},
+    {"\<\"F\"\>", "4", "4", "4", "True"},
+    {"\<\"G\"\>", "3", "3", "3", "True"}
+   },
+   AutoDelete->False,
+   GridBoxFrame->{"Columns" -> {{True}}, "Rows" -> {{True}}},
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}],
+  "Grid"]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.0022576133298264`*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"5d0b667d-d2e6-7846-8165-7deea22a3b08"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"All polynomial groups verified: \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["All polynomial groups verified: ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.002126107526476*^9, 4.0021942459923496`*^9, 
+  4.0022571736489716`*^9, 4.0022576133298264`*^9},
+ CellTags->"PolynomialChecks",
+ CellLabel->
+  "During evaluation of \
+In[493]:=",ExpressionUUID->"685300e6-e92f-2a4f-a3a0-7382c050546c"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3. Enumerate the cell patterns from the construction", "Section",ExpressionUUID->"0d73ba69-8863-9d45-8814-f6d281641bc4"],
+
+Cell["\<\
+This is the coverage step behind the classification figures. We retain the \
+colors and all four descent arrows before applying any transformations. In \
+particular, the enumeration is independent of the group matching: an \
+unclassified pattern cannot be silently discarded.\
+\>", "Text",
+ CellChangeTimes->{
+  4.002256969192219*^9},ExpressionUUID->"bfa806ee-7e51-3945-a021-\
+10ea694de94f"],
+
+Cell[CellGroupData[{
+
+Cell["Why a finite enumeration covers every input size", "Subsection",ExpressionUUID->"1cd21b28-2e40-3c4b-98e1-ce7aba72dd8a"],
+
+Cell["\<\
+Let M be the actual number of circuit nodes and N=6M+6. Write a cell's \
+lower-left corner as (6i+r,6j+s), where 0<=i,j<=M and r,s in {0,...,5}. \
+Inspecting the piecewise formulas shows that only columns i,i+1 and corridor \
+row j can affect its four corners. A valid node has state 0 if C(k)=k, state \
+1 if it is an ITER solution, and state 2 if C(k)>k and C(C(k))!=C(k). For a \
+row in state 2, retain its endpoint e=C(j)>j; that endpoint is not fixed.\
+\>", "Text",ExpressionUUID->"bdcc1be3-1511-5941-8bc8-98eeccf6af42"],
+
+Cell["\<\
+After the residues are fixed, the formulas depend only on these states and \
+the order/equalities of 0,1,i,i+1,j,e,M,M+1. There are at most six distinct \
+labels inside [1,M]. Relabel them in [1,6], keeping 1 and M as endpoints and \
+keeping i,i+1 consecutive when both lie inside. Spare labels can be inserted \
+in another gap; the only obstruction would be M=2 with i=1, excluded by the \
+large-size assumption. Relabel 0 and M+1 as 0 and 7. Every actual cell is \
+therefore represented by the finite enumeration below; the choice six is an \
+order abstraction, not a test of one small circuit.\
+\>", "Text",ExpressionUUID->"698f416c-ee4e-3340-97b0-8e96087e2aad"],
+
+Cell["\<\
+Repeated indices must receive the same state; exterior indices have state 0. \
+Since C(1)>1, node 1 is not fixed, and the last node cannot be continuing. A \
+queried corridor endpoint must be active. Some remaining assignments can be \
+unrealizable; including them is safe because every retained pattern must \
+still be certified. The later value checks use the actual symbolic N, not the \
+size of this finite abstraction.\
+\>", "Text",ExpressionUUID->"ba892d75-78d4-dc43-b036-7b25e65b8cdf"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Translate the piecewise formulas", "Subsection",ExpressionUUID->"b47d431a-a177-4e49-8049-0277f653a7eb"],
+
+Cell[TextData[{
+ "Colors 1,...,5 mean blue, black, red, green, orange. Arrow codes 1,...,4 \
+mean left, right, up, down. ",
+ StyleBox["cellTests",
+  FontFamily->"Courier"],
+ " follows the blue, black, green, orange and arrow clauses of the paper; red \
+and right are defaults. The seven returned conditions are evaluated before ",
+ StyleBox["pointFromTests",
+  FontFamily->"Courier"],
+ " selects the first applicable case, preserving the priority of the \
+piecewise definition."
+}], "Text",
+ CellChangeTimes->{
+  4.002256960158083*^9},ExpressionUUID->"e87586e4-b596-b046-967b-\
+c444725ad6ae"],
+
+Cell["\<\
+Clear[state, end];
+smallSize = 6;
+node[k_] := 1 <= k <= smallSize;
+active[k_] := node[k] && state[k] != 0;
+solution[k_] := node[k] && state[k] == 1;
+continuing[k_] := node[k] && state[k] == 2;
+corners = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
+arrowVectors = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}};
+
+cellTests[x_, y_, i_, j_] := Module[
+  {edge = 6 smallSize + 6, k, blue, black, green, orange,
+   upward, leftward, downward},
+  blue = False;
+  black = edge - 4 <= x <= edge - 2 && y == 2;
+  green = (2 <= x <= edge && 0 <= y <= 1) ||
+    (edge - 1 <= x <= edge && 2 <= y <= edge - 2);
+  orange = (0 <= x <= 1 && 0 <= y <= edge) ||
+    (2 <= x <= edge && edge - 1 <= y <= edge);
+  upward = 2 <= x <= edge && 0 <= y <= 1;
+  leftward = black || (edge - 1 <= x <= edge && 2 <= y <= edge - 2);
+  downward = (2 <= x <= edge && edge - 1 <= y <= edge) ||
+    (x == edge - 2 && 3 <= y <= edge - 2);
+  For[k = i, k <= i + 1, k++,
+    blue = blue ||
+      (6 k - 3 <= x <= 6 k - 1 && 3 <= y <= 6 k + 2 && active[k]) ||
+      (x == 6 k - 2 && y == 2 && active[k]) ||
+      (6 k <= x <= 6 k + 2 && 6 k + 1 <= y <= 6 k + 2 && continuing[k]) ||
+      (6 k + 1 <= x <= 6 k + 2 && 6 j + 1 <= y <= 6 j + 2 && node[k] && \
+continuing[j] && end > k > j) ||
+      (6 k - 3 <= x <= 6 k + 2 && 6 j + 1 <= y <= 6 j + 2 && node[k] && \
+!active[k] && continuing[j] && end > k > j);
+    black = black ||
+      (6 k - 1 <= x <= 6 k + 1 && y == 2 && active[k]) ||
+      (6 k - 4 <= x <= 6 k + 1 && y == 2 && node[k] && !active[k]);
+    upward = upward ||
+      (6 k - 2 <= x <= 6 k - 1 && 2 <= y <= 6 k + 1 && active[k]) ||
+      (6 k - 2 <= x <= 6 k - 1 && y == 6 k + 2 && solution[k]) ||
+      (6 k <= x <= 6 k + 2 && y == 6 k + 1 && continuing[k]) ||
+      (6 k + 1 <= x <= 6 k + 2 && y == 6 j + 1 && node[k] && continuing[j] && \
+end > k > j) ||
+      (6 k - 3 <= x <= 6 k + 2 && y == 6 j + 1 && node[k] && !active[k] && \
+continuing[j] && end > k > j) ||
+      (x == 6 k - 3 && y == 6 j + 1 && active[k] && continuing[j] && end >= k \
+> j);
+    leftward = leftward ||
+      (6 k <= x <= 6 k + 1 && y == 2 && active[k]) ||
+      (6 k - 4 <= x <= 6 k + 1 && y == 2 && node[k] && !active[k]);
+    downward = downward ||
+      (6 k - 2 <= x <= 6 k - 1 && 6 k + 3 <= y <= edge - 2 && solution[k]) ||
+      (x == 6 k - 5 && y == 3 && k > 1 && active[k]);
+  ];
+  {blue, black, green, orange, upward, leftward, downward}
+];
+
+pointFromTests[z_] := {
+  Which[z[[1]], 1, z[[2]], 2, z[[3]], 4, z[[4]], 5, True, 3],
+  Which[z[[5]], 3, z[[6]], 1, z[[7]], 4, True, 2]
+};
+\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"GeometryDefinitions",
+ CellLabel->
+  "In[498]:=",ExpressionUUID->"e28dc309-2c5a-f34c-86e4-51422aecd301"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["List every pattern and locate X", "Subsection",ExpressionUUID->"3653d27c-2dcb-224d-8bbb-4fd90486e89e"],
+
+Cell[TextData[{
+ "For each pair i,j, build the 7 x 7 array of conditions once. Substitute \
+every consistent choice of the three node states and the corridor endpoint, \
+then read the 36 cells from this array. Ordinary membership tests retain \
+distinct patterns. ",
+ StyleBox["witnesses[[k]]",
+  FontFamily->"Courier"],
+ " stores a first abstract occurrence of ",
+ StyleBox["patterns[[k]]",
+  FontFamily->"Courier"],
+ " as {i,j,r,s,{state(i),state(i+1),state(j)},e}. It is an audit record of \
+the enumeration, not a claimed circuit realization."
+}], "Text",ExpressionUUID->"d13b35ab-bf29-6044-9e89-889dbcafd976"],
+
+Cell["\<\
+The paper's X cells are Box(6k-3,6k+2), Box(6k-2,6k+2), and Box(6k-1,6k+2), \
+where k is an ITER solution. Equivalently, j=i+1, r in {3,4,5}, s=2, and \
+state(i+1)=1. Record both X and non-X occurrences. The check requires that no \
+X pattern also occurs outside these locations; all other patterns must pass \
+the representative check.\
+\>", "Text",ExpressionUUID->"34c79cda-f61c-1a4f-a9f8-b6bcd579b3bd"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+choices = {};
+For[si = 0, si <= 2, si++,
+  For[sk = 0, sk <= 2, sk++,
+    For[sj = 0, sj <= 2, sj++, AppendTo[choices, {si, sk, sj}]]]];
+patterns = {}; nonSolutionPatterns = {}; xPatterns = {}; witnesses = {};
+configurations = 0;
+For[i = 0, i <= smallSize, i++,
+  For[j = 0, j <= smallSize, j++,
+    keys = {i, i+1, j};
+    template = Table[cellTests[6 i+r, 6 j+s, i, j], {r,0,6}, {s,0,6}];
+    For[c = 1, c <= Length[choices], c++,
+      status = ConstantArray[-1, smallSize+2];
+      status[[1]] = 0; status[[smallSize+2]] = 0; valid = True;
+      For[k = 1, k <= 3, k++,
+        index = keys[[k]]+1;
+        If[status[[index]] != -1 && status[[index]] != choices[[c,k]], valid \
+= False];
+        status[[index]] = choices[[c,k]]];
+      If[status[[2]] == 0 || status[[smallSize+1]] == 2, valid = False];
+      If[!valid, Continue[]];
+      stateRules = Table[state[k] -> status[[k+1]], {k,0,smallSize+1}];
+      ends = {0};
+      If[status[[j+1]] == 2, ends = Range[j+1,smallSize]];
+      For[e = 1, e <= Length[ends], e++,
+        endpoint = ends[[e]];
+        If[endpoint > 0 && status[[endpoint+1]] == 0, Continue[]];
+        configurations++;
+        tests = template /. Join[stateRules, {end -> endpoint}];
+        grid = Table[pointFromTests[tests[[r,s]]], {r,1,7}, {s,1,7}];
+        For[r = 0, r <= 5, r++,
+          For[s = 0, s <= 5, s++,
+            pattern = {grid[[r+1,s+1]], grid[[r+2,s+1]],
+                       grid[[r+1,s+2]], grid[[r+2,s+2]]};
+            isX = j == i+1 && r >= 3 && s == 2 && status[[i+2]] == 1;
+            If[!MemberQ[patterns,pattern],
+              AppendTo[patterns,pattern];
+              AppendTo[witnesses,{i,j,r,s,choices[[c]],endpoint}]];
+            If[isX,
+              If[!MemberQ[xPatterns,pattern], AppendTo[xPatterns,pattern]],
+              If[!MemberQ[nonSolutionPatterns,pattern], \
+AppendTo[nonSolutionPatterns,pattern]]]
+          ]]
+      ]
+    ]
+  ];
+  Print[\"Completed column index \",i,\" of \",smallSize]
+];
+enumerationPassed = configurations == 865 && Length[patterns] == 57 &&
+  Length[nonSolutionPatterns] == 54 && Length[xPatterns] == 3;
+For[k = 1, k <= Length[xPatterns], k++,
+  If[MemberQ[nonSolutionPatterns,xPatterns[[k]]], enumerationPassed = False]];
+Print[configurations,\" configurations; \",Length[patterns],\" patterns; \",
+      Length[xPatterns],\" patterns confined to X cells.\"];
+\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"FiniteEnumeration",
+ CellLabel->
+  "In[511]:=",ExpressionUUID->"c67ba404-ddd7-7949-970a-7efd76314e41"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Completed column index \"\>", "\[InvisibleSpace]", "0", 
+   "\[InvisibleSpace]", "\<\" of \"\>", "\[InvisibleSpace]", "6"}],
+  SequenceForm["Completed column index ", 0, " of ", 6],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.0021261078597507`*^9, 4.002194246307312*^9, 
+  4.002257173966604*^9, 4.002257613488014*^9},
+ CellTags->"FiniteEnumeration",
+ CellLabel->
+  "During evaluation of \
+In[511]:=",ExpressionUUID->"5f0fa485-fcb2-d64b-8224-dde7eded66e0"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Completed column index \"\>", "\[InvisibleSpace]", "1", 
+   "\[InvisibleSpace]", "\<\" of \"\>", "\[InvisibleSpace]", "6"}],
+  SequenceForm["Completed column index ", 1, " of ", 6],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.0021261078597507`*^9, 4.002194246307312*^9, 
+  4.002257173966604*^9, 4.002257613606222*^9},
+ CellTags->"FiniteEnumeration",
+ CellLabel->
+  "During evaluation of \
+In[511]:=",ExpressionUUID->"84c17339-8d42-7e47-b9d7-6f20137d6bd8"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Completed column index \"\>", "\[InvisibleSpace]", "2", 
+   "\[InvisibleSpace]", "\<\" of \"\>", "\[InvisibleSpace]", "6"}],
+  SequenceForm["Completed column index ", 2, " of ", 6],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.0021261078597507`*^9, 4.002194246307312*^9, 
+  4.002257173966604*^9, 4.0022576137578278`*^9},
+ CellTags->"FiniteEnumeration",
+ CellLabel->
+  "During evaluation of \
+In[511]:=",ExpressionUUID->"b409af8b-9eb2-e04a-82f4-1a764bb5c04d"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Completed column index \"\>", "\[InvisibleSpace]", "3", 
+   "\[InvisibleSpace]", "\<\" of \"\>", "\[InvisibleSpace]", "6"}],
+  SequenceForm["Completed column index ", 3, " of ", 6],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.0021261078597507`*^9, 4.002194246307312*^9, 
+  4.002257173966604*^9, 4.0022576139169273`*^9},
+ CellTags->"FiniteEnumeration",
+ CellLabel->
+  "During evaluation of \
+In[511]:=",ExpressionUUID->"386f688e-119e-6840-a629-71d32673a84d"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Completed column index \"\>", "\[InvisibleSpace]", "4", 
+   "\[InvisibleSpace]", "\<\" of \"\>", "\[InvisibleSpace]", "6"}],
+  SequenceForm["Completed column index ", 4, " of ", 6],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.0021261078597507`*^9, 4.002194246307312*^9, 
+  4.002257173966604*^9, 4.0022576140908527`*^9},
+ CellTags->"FiniteEnumeration",
+ CellLabel->
+  "During evaluation of \
+In[511]:=",ExpressionUUID->"9b275908-b828-4046-ba98-d476530986b3"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Completed column index \"\>", "\[InvisibleSpace]", "5", 
+   "\[InvisibleSpace]", "\<\" of \"\>", "\[InvisibleSpace]", "6"}],
+  SequenceForm["Completed column index ", 5, " of ", 6],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.0021261078597507`*^9, 4.002194246307312*^9, 
+  4.002257173966604*^9, 4.0022576142329674`*^9},
+ CellTags->"FiniteEnumeration",
+ CellLabel->
+  "During evaluation of \
+In[511]:=",ExpressionUUID->"7e3bfd07-319e-674c-b243-9434a4aacc3d"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Completed column index \"\>", "\[InvisibleSpace]", "6", 
+   "\[InvisibleSpace]", "\<\" of \"\>", "\[InvisibleSpace]", "6"}],
+  SequenceForm["Completed column index ", 6, " of ", 6],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.0021261078597507`*^9, 4.002194246307312*^9, 
+  4.002257173966604*^9, 4.0022576142961273`*^9},
+ CellTags->"FiniteEnumeration",
+ CellLabel->
+  "During evaluation of \
+In[511]:=",ExpressionUUID->"27eb2dc9-a99f-f345-9065-c3365fc96ee8"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+  "865", "\[InvisibleSpace]", "\<\" configurations; \"\>", "\[InvisibleSpace]",
+    "57", "\[InvisibleSpace]", "\<\" patterns; \"\>", "\[InvisibleSpace]", 
+   "3", "\[InvisibleSpace]", "\<\" patterns confined to X cells.\"\>"}],
+  SequenceForm[
+  865, " configurations; ", 57, " patterns; ", 3, 
+   " patterns confined to X cells."],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.0021261078597507`*^9, 4.002194246307312*^9, 
+  4.002257173966604*^9, 4.0022576142961273`*^9},
+ CellTags->"FiniteEnumeration",
+ CellLabel->
+  "During evaluation of \
+In[511]:=",ExpressionUUID->"a8ebc6ad-8bda-ea40-8779-f8e21e01b5df"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["4. Match the patterns to the paper's representatives", "Section",ExpressionUUID->"2a3654ab-48cd-1547-b4ca-1a1e34f437be"],
+
+Cell[CellGroupData[{
+
+Cell["Check actual corner values", "Subsection",ExpressionUUID->"8a8d2207-09fe-ff4c-a62d-70f5c3591be0"],
+
+Cell[TextData[{
+ StyleBox["gridValues",
+  FontFamily->"Courier"],
+ " uses the five color functions in the paper, with actual side length ",
+ StyleBox["n",
+  FontFamily->"Courier"],
+ ">=10^40 and lower-left coordinates 0<=x0,y0<=n-1. ",
+ StyleBox["groupFits",
+  FontFamily->"Courier"],
+ " checks the paper's stated corner differences for Groups 1-4. For A-G it \
+subtracts the common reference value, checks the four exact representative \
+values, and checks the original color-gap hypotheses, including the blue \
+baseline and ratio bounds for B. It uses the same ",
+ StyleBox["cornerData",
+  FontFamily->"Courier"],
+ " as the exclusion checks above."
+}], "Text",
+ CellChangeTimes->{{4.002256944643795*^9, 
+  4.002256947459011*^9}},ExpressionUUID->"655c7eca-416c-b746-8144-\
+15c6a4b3694e"],
+
+Cell[TextData[{
+ "All these value inequalities are affine in n,x0,y0. For each one, ",
+ StyleBox["affineBound",
+  FontFamily->"Courier"],
+ " verifies this form and its rational coefficients, evaluates the four \
+vertices x0,y0 in {0,n-1}, and checks a nonnegative slope in n and the \
+required sign at n=10^40. This is the elementary endpoint check for the \
+paper's color-value bounds; it certifies every allowed size and position."
+}], "Text",
+ CellChangeTimes->{
+  4.002256950642473*^9},ExpressionUUID->"343115a1-d518-c041-8694-\
+dd7514e17d88"],
+
+Cell["\<\
+Clear[n, x0, y0];
+affineBound[poly_, strict_:False] := Module[{coeff, q, k, r, s, ok = True},
+  coeff = {poly /. {n -> 0, x0 -> 0, y0 -> 0},
+    Coefficient[poly, n], Coefficient[poly, x0], Coefficient[poly, y0]};
+  If[Expand[poly - coeff.{1, n, x0, y0}] =!= 0, Return[False]];
+  For[k = 1, k <= 4, k++,
+    If[!IntegerQ[coeff[[k]]] && Head[coeff[[k]]] =!= Rational, ok = False]];
+  For[r = 0, r <= 1, r++,
+    For[s = 0, s <= 1, s++,
+      q = Expand[poly /. {x0 -> r (n-1), y0 -> s (n-1)}];
+      If[!TrueQ[Coefficient[q, n] >= 0], ok = False];
+      If[!TrueQ[If[strict, (q /. n -> 10^40) > 0, (q /. n -> 10^40) >= 0]],
+        ok = False]]];
+  ok
+];
+
+gridValues[data_] := Module[{xx, yy, k, z = {}},
+  For[k = 1, k <= 4, k++,
+    {xx, yy} = {x0, y0} + corners[[k]];
+    AppendTo[z, {10^4 n - xx - yy, (10^6 + 1) n + xx - yy,
+     10^4 (10^4 - 2) n - xx + yy, 10^15 n + xx - yy,
+     10^16 n - xx + yy}[[data[[k, 1]]]]]];
+  z
+];
+
+groupFits[which_, data_] := Module[
+  {g = cornerData[[which, 1]], base, w, gapA, gapB, expected, margins, k, ok \
+= True},
+  If[IntegerQ[g],
+    margins = Switch[g,
+      1, {data[[1]] - data[[2]] - 1, data[[3]] - data[[4]] - 1},
+      2 | 3, {data[[1]] - data[[2]] + 1, data[[3]] - data[[4]] - 1,
+        data[[1]] - data[[3]] - 1, data[[2]] - data[[4]] - 1},
+      4, {data[[1]] - data[[2]] - 1, data[[3]] - data[[4]] + 1,
+        data[[1]] - data[[3]] - 1, data[[2]] - data[[4]] - 1}],
+    base = data[[If[MemberQ[{\"A\", \"B\"}, g], 3, 1]]];
+    w = Expand[data - base];
+    gapA = Switch[g, \"C\", w[[3]], \"D\", w[[2]], _, w[[4]]];
+    gapB = Switch[g, \"A\", w[[2]] - gapA, \"B\", w[[2]], _, 0];
+    expected = cornerData[[which, 2]] /. {a -> gapA, b -> gapB};
+    For[k = 1, k <= 4, k++,
+      If[Expand[w[[k]]-expected[[k]]] =!= 0, ok = False]];
+    If[g == \"B\" && !affineBound[base - 10^9, True], Return[False]];
+    margins = Switch[g,
+      \"A\", {gapA - 10^40, gapB - 10^40},
+      \"B\", {gapA - 9995 base, 10000 base - gapA, gapB - 99 base, 101 base - \
+gapB},
+      _, {gapA - 10^20}]
+  ];
+  For[k = 1, k <= Length[margins], k++,
+    If[!affineBound[margins[[k]]], ok = False]];
+  ok
+];
+\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"RepresentativeHypotheses",
+ CellLabel->
+  "In[520]:=",ExpressionUUID->"b0e8e1a8-28ba-8745-93d5-80845b0d008a"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Apply the prescribed transformations", "Subsection",ExpressionUUID->"56ec8bd3-67c0-e94e-bfe8-bdb837d3f5bb"],
+
+Cell["\<\
+The matrices below implement the square symmetries. For the coordinate map \
+T(u)=Qu+(1-Q(1,1))/2, transformed corner values are permuted, and gradient \
+row vectors are multiplied by Q. The names describe rotations of the \
+displayed cell: the map T(x,y)=(1-y,x) rotates its data clockwise by 90 \
+degrees. This is the convention used in the revised paper.\
+\>", "Text",ExpressionUUID->"a86c87f8-5240-5a4d-b63c-148eb6e08641"],
+
+Cell["\<\
+The transformation argument is unchanged: uniqueness of the biquintic \
+polynomial transfers these corner data to f(T(u)). Square symmetries preserve \
+gradient norms and Hessian eigenvalues. Negation reverses the corner Hessian \
+and is permitted only for Groups 1-4, whose gradient bounds hold for both \
+signs of sigma. For A-G, only square symmetries and a common additive value \
+are used.\
+\>", "Text",ExpressionUUID->"80c30c02-b45c-614a-afc4-9b2cd2a3ec5f"],
+
+Cell["\<\
+symmetries = {
+  {{1,0},{0,1}}, {{0,-1},{1,0}}, {{-1,0},{0,-1}}, {{0,1},{-1,0}},
+  {{-1,0},{0,1}}, {{1,0},{0,-1}}, {{0,1},{1,0}}, {{0,-1},{-1,0}}
+};
+symmetryNames = {\"identity\", \"rotate 90 clockwise\", \"rotate 180\", \
+\"rotate 270 clockwise\", \"reflect x=1/2\", \"reflect y=1/2\", \"reflect y=x\
+\", \"reflect y=1-x\"};
+permutations = {}; symmetryPassed = True;
+For[h = 1, h <= 8, h++,
+  q = symmetries[[h]]; shift = ({1,1}-q.{1,1})/2; permutation = {};
+  For[k = 1, k <= 4, k++,
+    For[l = 1, l <= 4, l++,
+      If[q.corners[[k]]+shift == corners[[l]], AppendTo[permutation,l]]]];
+  If[Transpose[q].q != IdentityMatrix[2] || Sort[permutation] != {1,2,3,4},
+    symmetryPassed = False];
+  AppendTo[permutations,permutation]
+];
+
+\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"RepresentativeMatching",
+ CellLabel->
+  "In[527]:=",ExpressionUUID->"bfcd0174-4cc5-ac43-a356-690897cac8fb"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["5. Verify the paper's selected classification", "Section",ExpressionUUID->"871eea09-ee7e-f24d-aa96-f0fec04a8754"],
+
+Cell["\<\
+Each row of paperCases is {paper case, four color-arrow names, group, \
+transformation, sign}. The corners are ordered bottom-left, bottom-right, \
+top-left, top-right. For example, \"red-right\" means a red corner with a \
+descent arrow pointing right. Transformations are named explicitly in local \
+coordinates; sign 1 means no negation and sign -1 means negation. Group \
+numbers are the paper's actual group numbers. Cases 1.1-4.4 agree with the \
+revised figure and text. A-G and X.1-X.3 complete the list, with X cases \
+ordered left to right at the top of a solution column.\
+\>", "Text",
+ CellChangeTimes->{
+  4.0022569356968822`*^9},ExpressionUUID->"222b2a11-597e-ef4f-b56b-\
+ee5137a193a0"],
+
+Cell["\<\
+The helper indexOf converts a name to its internal array index; an unknown \
+name returns 0 and fails verification. The loop checks only the \
+transformation prescribed in this table. An incorrect case fails; there is no \
+search for an alternative group or transformation. The final coverage check \
+requires every enumerated pattern to appear in the table, with no duplicates. \
+This connects the exhaustive enumeration directly to the proof's case list.\
+\>", "Text",ExpressionUUID->"8a021c6b-0151-8d44-930b-6b21e2575c8c"],
+
+Cell["\<\
+paperCases = {
+  {\"1.1\", {\"red-right\", \"red-right\", \"red-right\", \"red-right\"}, 1, \
+\"identity\", 1},
+  {\"1.2\", {\"green-up\", \"green-up\", \"green-up\", \"green-up\"}, 1, \
+\"rotate 90 clockwise\", 1},
+  {\"1.3\", {\"green-left\", \"green-left\", \"green-left\", \"green-left\"}, \
+1, \"rotate 180\", 1},
+  {\"1.4\", {\"orange-right\", \"orange-right\", \"orange-right\", \
+\"orange-right\"}, 1, \"identity\", 1},
+  {\"1.5\", {\"orange-down\", \"orange-down\", \"orange-down\", \"orange-down\
+\"}, 1, \"rotate 270 clockwise\", 1},
+  {\"1.6\", {\"blue-right\", \"blue-right\", \"red-right\", \"blue-right\"}, \
+1, \"identity\", 1},
+  {\"1.7\", {\"red-right\", \"blue-right\", \"red-right\", \"red-right\"}, 1, \
+\"identity\", 1},
+  {\"1.8\", {\"red-right\", \"blue-right\", \"red-right\", \"blue-right\"}, \
+1, \"identity\", 1},
+  {\"1.9\", {\"blue-right\", \"blue-right\", \"red-right\", \"red-right\"}, \
+1, \"identity\", 1},
+  {\"1.10\", {\"red-right\", \"red-right\", \"red-right\", \"blue-right\"}, \
+1, \"identity\", 1},
+  {\"1.11\", {\"orange-right\", \"red-right\", \"orange-right\", \
+\"red-right\"}, 1, \"identity\", 1},
+  {\"1.12\", {\"red-down\", \"red-down\", \"orange-down\", \"orange-down\"}, \
+1, \"rotate 270 clockwise\", 1},
+  {\"1.13\", {\"green-up\", \"green-up\", \"blue-up\", \"black-up\"}, 1, \
+\"rotate 90 clockwise\", 1},
+  {\"1.14\", {\"blue-up\", \"black-up\", \"blue-up\", \"blue-up\"}, 1, \
+\"rotate 90 clockwise\", 1},
+  {\"1.15\", {\"blue-up\", \"blue-up\", \"blue-up\", \"blue-up\"}, 1, \
+\"rotate 90 clockwise\", 1},
+  {\"1.16\", {\"red-down\", \"red-down\", \"red-down\", \"red-down\"}, 1, \
+\"rotate 270 clockwise\", 1},
+  {\"2.1\", {\"red-right\", \"red-right\", \"blue-up\", \"blue-up\"}, 2, \
+\"rotate 180\", -1},
+  {\"2.2\", {\"blue-up\", \"blue-up\", \"blue-right\", \"blue-right\"}, 2, \
+\"identity\", 1},
+  {\"2.3\", {\"blue-right\", \"blue-up\", \"blue-right\", \"blue-up\"}, 2, \
+\"reflect y=x\", 1},
+  {\"2.4\", {\"red-right\", \"blue-up\", \"blue-right\", \"blue-up\"}, 2, \
+\"reflect y=x\", 1},
+  {\"2.5\", {\"red-right\", \"blue-right\", \"blue-up\", \"blue-up\"}, 2, \
+\"rotate 180\", -1},
+  {\"2.6\", {\"green-up\", \"green-up\", \"black-left\", \"black-left\"}, 2, \
+\"reflect x=1/2\", 1},
+  {\"2.7\", {\"green-up\", \"green-up\", \"red-right\", \"red-right\"}, 2, \
+\"identity\", 1},
+  {\"2.8\", {\"red-right\", \"red-right\", \"orange-down\", \"orange-down\"}, \
+2, \"reflect y=1/2\", 1},
+  {\"2.9\", {\"green-up\", \"green-up\", \"black-left\", \"green-left\"}, 2, \
+\"reflect x=1/2\", 1},
+  {\"2.10\", {\"orange-right\", \"green-up\", \"orange-right\", \
+\"green-up\"}, 2, \"reflect y=x\", 1},
+  {\"2.11\", {\"red-right\", \"red-down\", \"red-right\", \"red-down\"}, 2, \
+\"rotate 270 clockwise\", 1},
+  {\"2.12\", {\"red-down\", \"red-right\", \"red-down\", \"red-right\"}, 2, \
+\"rotate 90 clockwise\", -1},
+  {\"2.13\", {\"orange-right\", \"orange-down\", \"orange-right\", \
+\"orange-down\"}, 2, \"rotate 270 clockwise\", 1},
+  {\"2.14\", {\"red-down\", \"green-left\", \"red-down\", \"green-left\"}, 2, \
+\"reflect y=1-x\", 1},
+  {\"2.15\", {\"green-up\", \"green-up\", \"green-left\", \"green-left\"}, 2, \
+\"reflect x=1/2\", 1},
+  {\"2.16\", {\"green-left\", \"green-left\", \"orange-down\", \
+\"orange-down\"}, 2, \"rotate 180\", 1},
+  {\"3.1\", {\"green-up\", \"green-up\", \"red-right\", \"blue-up\"}, 3, \
+\"identity\", 1},
+  {\"3.2\", {\"blue-up\", \"blue-up\", \"blue-right\", \"blue-up\"}, 3, \
+\"identity\", 1},
+  {\"3.3\", {\"blue-right\", \"blue-up\", \"blue-right\", \"blue-right\"}, 3, \
+\"reflect y=x\", 1},
+  {\"3.4\", {\"red-down\", \"green-left\", \"orange-down\", \"orange-down\"}, \
+3, \"rotate 180\", 1},
+  {\"3.5\", {\"orange-right\", \"green-up\", \"orange-right\", \
+\"red-right\"}, 3, \"reflect y=x\", 1},
+  {\"3.6\", {\"red-down\", \"red-right\", \"red-right\", \"red-right\"}, 3, \
+\"rotate 90 clockwise\", -1},
+  {\"3.7\", {\"black-left\", \"green-left\", \"red-down\", \"green-left\"}, \
+3, \"reflect y=1-x\", 1},
+  {\"3.8\", {\"red-right\", \"blue-up\", \"red-right\", \"blue-right\"}, 3, \
+\"reflect y=x\", 1},
+  {\"3.9\", {\"green-up\", \"green-up\", \"black-up\", \"black-left\"}, 3, \
+\"reflect x=1/2\", 1},
+  {\"3.10\", {\"orange-right\", \"red-right\", \"orange-right\", \
+\"orange-down\"}, 3, \"rotate 270 clockwise\", 1},
+  {\"3.11\", {\"red-right\", \"red-down\", \"orange-down\", \"orange-down\"}, \
+3, \"reflect y=1/2\", 1},
+  {\"4.1\", {\"blue-right\", \"blue-up\", \"blue-up\", \"blue-up\"}, 4, \
+\"identity\", 1},
+  {\"4.2\", {\"red-right\", \"red-down\", \"red-right\", \"red-right\"}, 4, \
+\"rotate 90 clockwise\", -1},
+  {\"4.3\", {\"red-down\", \"red-right\", \"orange-down\", \"orange-down\"}, \
+4, \"reflect x=1/2\", -1},
+  {\"4.4\", {\"red-right\", \"red-right\", \"red-right\", \"blue-up\"}, 4, \
+\"reflect y=1-x\", -1},
+  {\"A\", {\"green-up\", \"green-up\", \"black-left\", \"red-right\"}, \"A\", \
+\"identity\", 1},
+  {\"B\", {\"black-up\", \"black-left\", \"blue-up\", \"red-right\"}, \"B\", \
+\"identity\", 1},
+  {\"C\", {\"black-left\", \"red-right\", \"red-down\", \"red-right\"}, \
+\"C\", \"identity\", 1},
+  {\"D\", {\"blue-up\", \"red-right\", \"blue-up\", \"blue-up\"}, \"D\", \
+\"identity\", 1},
+  {\"E\", {\"blue-up\", \"red-right\", \"blue-up\", \"red-right\"}, \"E\", \
+\"identity\", 1},
+  {\"F\", {\"black-left\", \"black-left\", \"red-right\", \"red-down\"}, \
+\"F\", \"identity\", 1},
+  {\"G\", {\"black-left\", \"black-left\", \"red-right\", \"red-right\"}, \"G\
+\", \"rotate 90 clockwise\", 1},
+  {\"X.1\", {\"blue-right\", \"blue-up\", \"red-right\", \"red-down\"}, \
+\"X\", \"identity\", 1},
+  {\"X.2\", {\"blue-up\", \"blue-up\", \"red-down\", \"red-down\"}, \"X\", \
+\"identity\", 1},
+  {\"X.3\", {\"blue-up\", \"red-right\", \"red-down\", \"red-right\"}, \"X\", \
+\"identity\", 1}
+};
+\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"PaperCases",
+ CellLabel->
+  "In[533]:=",ExpressionUUID->"82905bf5-f6f4-ad4d-ae4f-1ded887beb8a"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+colorNames = {\"blue\",\"black\",\"red\",\"green\",\"orange\"};
+arrowNames = {\"left\",\"right\",\"up\",\"down\"};
+indexOf[name_, names_] := Module[{i, found = 0},
+  For[i = 1, i <= Length[names], i++,
+    If[name === names[[i]], found = i]];
+  found
+];
+
+classificationPassed = enumerationPassed && symmetryPassed;
+report = {{\"Case\",\"BL\",\"BR\",\"TL\",\"TR\",\"Transformation\",\"Sign\",\"\
+Verified\"}};
+listed = {};
+For[k = 1, k <= Length[paperCases], k++,
+  entry = paperCases[[k]];
+  case = entry[[1]]; group = entry[[3]]; sign = entry[[5]];
+  h = indexOf[entry[[4]],symmetryNames];
+  pattern = {};
+  For[l = 1, l <= 4, l++,
+    pair = StringSplit[entry[[2,l]],\"-\"];
+    codes = {0,0};
+    If[Length[pair] == 2,
+      codes = {indexOf[pair[[1]],colorNames],indexOf[pair[[2]],arrowNames]}];
+    AppendTo[pattern,codes]];
+  passed = h > 0 && MemberQ[{1,-1},sign] &&
+    MemberQ[patterns,pattern] && !MemberQ[listed,pattern];
+  If[passed,
+    If[group == \"X\",
+      passed = h == 1 && sign == 1 && MemberQ[xPatterns,pattern] &&
+        !MemberQ[nonSolutionPatterns,pattern],
+      groupIndex = 0;
+      For[l = 1, l <= Length[cornerData], l++,
+        If[cornerData[[l,1]] === group, groupIndex = l]];
+      If[groupIndex == 0 || (sign == -1 && !IntegerQ[group]),
+        passed = False,
+        v = sign gridValues[pattern][[permutations[[h]]]];
+        d = sign \
+arrowVectors[[pattern[[permutations[[h]],2]]]].symmetries[[h]];
+        passed = MemberQ[nonSolutionPatterns,pattern] &&
+          d === -2 cornerData[[groupIndex,3]] && groupFits[groupIndex,v]]]];
+  AppendTo[listed,pattern];
+  row = Join[{case},entry[[2]],{entry[[4]],sign,TrueQ[passed]}];
+  AppendTo[report,row];
+  If[!TrueQ[passed], classificationPassed = False]
+];
+For[k = 1, k <= Length[patterns], k++,
+  If[!MemberQ[listed,patterns[[k]]],
+    classificationPassed = False; Print[\"Unlisted pattern: \
+\",patterns[[k]]]]];
+Print[Grid[report,Frame -> All]];
+Print[\"Paper classification verified: \",classificationPassed];
+completeVerificationPassed = allPassed && classificationPassed;
+Print[\"Polynomial checks and paper classification verified: \
+\",completeVerificationPassed];
+\
+\>", "Input",
+ ShowCellBracket->True,
+ Evaluatable->True,
+ CellOpen->True,
+ CellChangeTimes->{{4.0022571524578743`*^9, 4.002257164379135*^9}},
+ CellTags->"ClassificationReport",
+ CellLabel->
+  "In[535]:=",ExpressionUUID->"a74c8ff3-75d0-0b40-a6b3-ee0ed9c1dd48"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {"\<\"Case\"\>", "\<\"BL\"\>", "\<\"BR\"\>", "\<\"TL\"\>", "\<\"TR\"\>", \
+"\<\"Transformation\"\>", "\<\"Sign\"\>", "\<\"Verified\"\>"},
+    {"\<\"1.1\"\>", "\<\"red-right\"\>", "\<\"red-right\"\>", \
+"\<\"red-right\"\>", "\<\"red-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"1.2\"\>", "\<\"green-up\"\>", "\<\"green-up\"\>", \
+"\<\"green-up\"\>", "\<\"green-up\"\>", "\<\"rotate 90 clockwise\"\>", "1", 
+     "True"},
+    {"\<\"1.3\"\>", "\<\"green-left\"\>", "\<\"green-left\"\>", \
+"\<\"green-left\"\>", "\<\"green-left\"\>", "\<\"rotate 180\"\>", "1", "True"},
+    {"\<\"1.4\"\>", "\<\"orange-right\"\>", "\<\"orange-right\"\>", \
+"\<\"orange-right\"\>", "\<\"orange-right\"\>", "\<\"identity\"\>", "1", 
+     "True"},
+    {"\<\"1.5\"\>", "\<\"orange-down\"\>", "\<\"orange-down\"\>", \
+"\<\"orange-down\"\>", "\<\"orange-down\"\>", "\<\"rotate 270 clockwise\"\>", 
+     "1", "True"},
+    {"\<\"1.6\"\>", "\<\"blue-right\"\>", "\<\"blue-right\"\>", \
+"\<\"red-right\"\>", "\<\"blue-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"1.7\"\>", "\<\"red-right\"\>", "\<\"blue-right\"\>", "\<\"red-right\
+\"\>", "\<\"red-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"1.8\"\>", "\<\"red-right\"\>", "\<\"blue-right\"\>", "\<\"red-right\
+\"\>", "\<\"blue-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"1.9\"\>", "\<\"blue-right\"\>", "\<\"blue-right\"\>", \
+"\<\"red-right\"\>", "\<\"red-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"1.10\"\>", "\<\"red-right\"\>", "\<\"red-right\"\>", "\<\"red-right\
+\"\>", "\<\"blue-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"1.11\"\>", "\<\"orange-right\"\>", "\<\"red-right\"\>", \
+"\<\"orange-right\"\>", "\<\"red-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"1.12\"\>", "\<\"red-down\"\>", "\<\"red-down\"\>", "\<\"orange-down\
+\"\>", "\<\"orange-down\"\>", "\<\"rotate 270 clockwise\"\>", "1", "True"},
+    {"\<\"1.13\"\>", "\<\"green-up\"\>", "\<\"green-up\"\>", \
+"\<\"blue-up\"\>", "\<\"black-up\"\>", "\<\"rotate 90 clockwise\"\>", "1", 
+     "True"},
+    {"\<\"1.14\"\>", "\<\"blue-up\"\>", "\<\"black-up\"\>", \
+"\<\"blue-up\"\>", "\<\"blue-up\"\>", "\<\"rotate 90 clockwise\"\>", "1", 
+     "True"},
+    {"\<\"1.15\"\>", "\<\"blue-up\"\>", "\<\"blue-up\"\>", "\<\"blue-up\"\>", \
+"\<\"blue-up\"\>", "\<\"rotate 90 clockwise\"\>", "1", "True"},
+    {"\<\"1.16\"\>", "\<\"red-down\"\>", "\<\"red-down\"\>", \
+"\<\"red-down\"\>", "\<\"red-down\"\>", "\<\"rotate 270 clockwise\"\>", "1", 
+     "True"},
+    {"\<\"2.1\"\>", "\<\"red-right\"\>", "\<\"red-right\"\>", \
+"\<\"blue-up\"\>", "\<\"blue-up\"\>", "\<\"rotate 180\"\>", 
+     RowBox[{"-", "1"}], "True"},
+    {"\<\"2.2\"\>", "\<\"blue-up\"\>", "\<\"blue-up\"\>", \
+"\<\"blue-right\"\>", "\<\"blue-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"2.3\"\>", "\<\"blue-right\"\>", "\<\"blue-up\"\>", \
+"\<\"blue-right\"\>", "\<\"blue-up\"\>", "\<\"reflect y=x\"\>", "1", "True"},
+    {"\<\"2.4\"\>", "\<\"red-right\"\>", "\<\"blue-up\"\>", "\<\"blue-right\"\
+\>", "\<\"blue-up\"\>", "\<\"reflect y=x\"\>", "1", "True"},
+    {"\<\"2.5\"\>", "\<\"red-right\"\>", "\<\"blue-right\"\>", "\<\"blue-up\"\
+\>", "\<\"blue-up\"\>", "\<\"rotate 180\"\>", 
+     RowBox[{"-", "1"}], "True"},
+    {"\<\"2.6\"\>", "\<\"green-up\"\>", "\<\"green-up\"\>", "\<\"black-left\"\
+\>", "\<\"black-left\"\>", "\<\"reflect x=1/2\"\>", "1", "True"},
+    {"\<\"2.7\"\>", "\<\"green-up\"\>", "\<\"green-up\"\>", \
+"\<\"red-right\"\>", "\<\"red-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"2.8\"\>", "\<\"red-right\"\>", "\<\"red-right\"\>", \
+"\<\"orange-down\"\>", "\<\"orange-down\"\>", "\<\"reflect y=1/2\"\>", "1", 
+     "True"},
+    {"\<\"2.9\"\>", "\<\"green-up\"\>", "\<\"green-up\"\>", "\<\"black-left\"\
+\>", "\<\"green-left\"\>", "\<\"reflect x=1/2\"\>", "1", "True"},
+    {"\<\"2.10\"\>", "\<\"orange-right\"\>", "\<\"green-up\"\>", \
+"\<\"orange-right\"\>", "\<\"green-up\"\>", "\<\"reflect y=x\"\>", "1", 
+     "True"},
+    {"\<\"2.11\"\>", "\<\"red-right\"\>", "\<\"red-down\"\>", \
+"\<\"red-right\"\>", "\<\"red-down\"\>", "\<\"rotate 270 clockwise\"\>", "1", 
+     "True"},
+    {"\<\"2.12\"\>", "\<\"red-down\"\>", "\<\"red-right\"\>", "\<\"red-down\"\
+\>", "\<\"red-right\"\>", "\<\"rotate 90 clockwise\"\>", 
+     RowBox[{"-", "1"}], "True"},
+    {"\<\"2.13\"\>", "\<\"orange-right\"\>", "\<\"orange-down\"\>", \
+"\<\"orange-right\"\>", "\<\"orange-down\"\>", "\<\"rotate 270 clockwise\"\>",
+      "1", "True"},
+    {"\<\"2.14\"\>", "\<\"red-down\"\>", "\<\"green-left\"\>", \
+"\<\"red-down\"\>", "\<\"green-left\"\>", "\<\"reflect y=1-x\"\>", "1", 
+     "True"},
+    {"\<\"2.15\"\>", "\<\"green-up\"\>", "\<\"green-up\"\>", \
+"\<\"green-left\"\>", "\<\"green-left\"\>", "\<\"reflect x=1/2\"\>", "1", 
+     "True"},
+    {"\<\"2.16\"\>", "\<\"green-left\"\>", "\<\"green-left\"\>", \
+"\<\"orange-down\"\>", "\<\"orange-down\"\>", "\<\"rotate 180\"\>", "1", 
+     "True"},
+    {"\<\"3.1\"\>", "\<\"green-up\"\>", "\<\"green-up\"\>", \
+"\<\"red-right\"\>", "\<\"blue-up\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"3.2\"\>", "\<\"blue-up\"\>", "\<\"blue-up\"\>", \
+"\<\"blue-right\"\>", "\<\"blue-up\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"3.3\"\>", "\<\"blue-right\"\>", "\<\"blue-up\"\>", \
+"\<\"blue-right\"\>", "\<\"blue-right\"\>", "\<\"reflect y=x\"\>", "1", 
+     "True"},
+    {"\<\"3.4\"\>", "\<\"red-down\"\>", "\<\"green-left\"\>", \
+"\<\"orange-down\"\>", "\<\"orange-down\"\>", "\<\"rotate 180\"\>", "1", 
+     "True"},
+    {"\<\"3.5\"\>", "\<\"orange-right\"\>", "\<\"green-up\"\>", \
+"\<\"orange-right\"\>", "\<\"red-right\"\>", "\<\"reflect y=x\"\>", "1", 
+     "True"},
+    {"\<\"3.6\"\>", "\<\"red-down\"\>", "\<\"red-right\"\>", "\<\"red-right\"\
+\>", "\<\"red-right\"\>", "\<\"rotate 90 clockwise\"\>", 
+     RowBox[{"-", "1"}], "True"},
+    {"\<\"3.7\"\>", "\<\"black-left\"\>", "\<\"green-left\"\>", "\<\"red-down\
+\"\>", "\<\"green-left\"\>", "\<\"reflect y=1-x\"\>", "1", "True"},
+    {"\<\"3.8\"\>", "\<\"red-right\"\>", "\<\"blue-up\"\>", \
+"\<\"red-right\"\>", "\<\"blue-right\"\>", "\<\"reflect y=x\"\>", "1", "True"},
+    {"\<\"3.9\"\>", "\<\"green-up\"\>", "\<\"green-up\"\>", \
+"\<\"black-up\"\>", "\<\"black-left\"\>", "\<\"reflect x=1/2\"\>", "1", 
+     "True"},
+    {"\<\"3.10\"\>", "\<\"orange-right\"\>", "\<\"red-right\"\>", \
+"\<\"orange-right\"\>", "\<\"orange-down\"\>", "\<\"rotate 270 clockwise\"\>",
+      "1", "True"},
+    {"\<\"3.11\"\>", "\<\"red-right\"\>", "\<\"red-down\"\>", \
+"\<\"orange-down\"\>", "\<\"orange-down\"\>", "\<\"reflect y=1/2\"\>", "1", 
+     "True"},
+    {"\<\"4.1\"\>", "\<\"blue-right\"\>", "\<\"blue-up\"\>", \
+"\<\"blue-up\"\>", "\<\"blue-up\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"4.2\"\>", "\<\"red-right\"\>", "\<\"red-down\"\>", "\<\"red-right\"\
+\>", "\<\"red-right\"\>", "\<\"rotate 90 clockwise\"\>", 
+     RowBox[{"-", "1"}], "True"},
+    {"\<\"4.3\"\>", "\<\"red-down\"\>", "\<\"red-right\"\>", "\<\"orange-down\
+\"\>", "\<\"orange-down\"\>", "\<\"reflect x=1/2\"\>", 
+     RowBox[{"-", "1"}], "True"},
+    {"\<\"4.4\"\>", "\<\"red-right\"\>", "\<\"red-right\"\>", \
+"\<\"red-right\"\>", "\<\"blue-up\"\>", "\<\"reflect y=1-x\"\>", 
+     RowBox[{"-", "1"}], "True"},
+    {"\<\"A\"\>", "\<\"green-up\"\>", "\<\"green-up\"\>", \
+"\<\"black-left\"\>", "\<\"red-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"B\"\>", "\<\"black-up\"\>", "\<\"black-left\"\>", \
+"\<\"blue-up\"\>", "\<\"red-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"C\"\>", "\<\"black-left\"\>", "\<\"red-right\"\>", \
+"\<\"red-down\"\>", "\<\"red-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"D\"\>", "\<\"blue-up\"\>", "\<\"red-right\"\>", "\<\"blue-up\"\>", \
+"\<\"blue-up\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"E\"\>", "\<\"blue-up\"\>", "\<\"red-right\"\>", "\<\"blue-up\"\>", \
+"\<\"red-right\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"F\"\>", "\<\"black-left\"\>", "\<\"black-left\"\>", \
+"\<\"red-right\"\>", "\<\"red-down\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"G\"\>", "\<\"black-left\"\>", "\<\"black-left\"\>", \
+"\<\"red-right\"\>", "\<\"red-right\"\>", "\<\"rotate 90 clockwise\"\>", "1", 
+     "True"},
+    {"\<\"X.1\"\>", "\<\"blue-right\"\>", "\<\"blue-up\"\>", "\<\"red-right\"\
+\>", "\<\"red-down\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"X.2\"\>", "\<\"blue-up\"\>", "\<\"blue-up\"\>", "\<\"red-down\"\>", \
+"\<\"red-down\"\>", "\<\"identity\"\>", "1", "True"},
+    {"\<\"X.3\"\>", "\<\"blue-up\"\>", "\<\"red-right\"\>", \
+"\<\"red-down\"\>", "\<\"red-right\"\>", "\<\"identity\"\>", "1", "True"}
+   },
+   AutoDelete->False,
+   GridBoxFrame->{"Columns" -> {{True}}, "Rows" -> {{True}}},
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}],
+  "Grid"]], "Print",
+ CellChangeTimes->{4.0021261087624474`*^9, 4.002194247224575*^9, 
+  4.0022571748694515`*^9, 4.002257614359415*^9},
+ CellTags->"ClassificationReport",
+ CellLabel->
+  "During evaluation of \
+In[535]:=",ExpressionUUID->"2bfeb970-0ef4-234e-917b-aa958f4bd43a"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Paper classification verified: \"\>", "\[InvisibleSpace]", 
+   "True"}],
+  SequenceForm["Paper classification verified: ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.0021261087624474`*^9, 4.002194247224575*^9, 
+  4.0022571748694515`*^9, 4.0022576143751087`*^9},
+ CellTags->"ClassificationReport",
+ CellLabel->
+  "During evaluation of \
+In[535]:=",ExpressionUUID->"7c49e533-85f7-7146-895a-19f505c797c2"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Polynomial checks and paper classification verified: \"\>", "\[InvisibleSpace]",
+    "True"}],
+  SequenceForm["Polynomial checks and paper classification verified: ", True],
+  Editable->False]], "Print",
+ CellChangeTimes->{4.0021261087624474`*^9, 4.002194247224575*^9, 
+  4.0022571748694515`*^9, 4.0022576143751087`*^9},
+ CellTags->"ClassificationReport",
+ CellLabel->
+  "During evaluation of \
+In[535]:=",ExpressionUUID->"a1286cf4-deb3-7b4d-85e0-e07e259d6d79"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Scope", "Section",ExpressionUUID->"a2070f9d-f503-314f-88d7-584840ae5e7e"],
+
+Cell["\<\
+The notebook verifies the local polynomial inequalities and the paper's \
+selected classification. The paper supplies the interpolation, \
+finite-coverage, transformation, and constrained-boundary arguments. Exact \
+simulation reproduces the 57 original output rows, and all 54 prescribed \
+non-X certificates are checked. \
+\>", "Text",
+ CellChangeTimes->{
+  4.002195644079178*^9},ExpressionUUID->"7580adfe-6c3c-6e4e-b842-\
+8ea99e55c34f"]
+}, Open  ]]
+}, Open  ]]
+},
+ScreenStyleEnvironment->"Working",
+WindowSize->{1141.2, 568.8},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+WindowTitle->"SOSP verification",
+ShowCellBracket->True,
+CellContext->"Global`",
+FrontEndVersion->"14.3 for Microsoft Windows (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"a95c7245-ae70-8649-9ed6-1bbc6feb26b2"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{
+ "ClassificationReport"->{
+  Cell[49722, 1245, 2433, 62, 823, "Input",ExpressionUUID->"a74c8ff3-75d0-0b40-a6b3-ee0ed9c1dd48",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"ClassificationReport"],
+  Cell[52180, 1311, 9103, 155, 972, "Print",ExpressionUUID->"2bfeb970-0ef4-234e-917b-aa958f4bd43a",
+   CellTags->"ClassificationReport"],
+  Cell[61286, 1468, 466, 11, 22, "Print",ExpressionUUID->"7c49e533-85f7-7146-895a-19f505c797c2",
+   CellTags->"ClassificationReport"],
+  Cell[61755, 1481, 510, 11, 22, "Print",ExpressionUUID->"a1286cf4-deb3-7b4d-85e0-e07e259d6d79",
+   CellTags->"ClassificationReport"]},
+ "FiniteEnumeration"->{
+  Cell[29355, 756, 2569, 61, 855, "Input",ExpressionUUID->"c67ba404-ddd7-7949-970a-7efd76314e41",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"FiniteEnumeration"],
+  Cell[31949, 821, 511, 11, 22, "Print",ExpressionUUID->"5f0fa485-fcb2-d64b-8224-dde7eded66e0",
+   CellTags->"FiniteEnumeration"],
+  Cell[32463, 834, 511, 11, 22, "Print",ExpressionUUID->"84c17339-8d42-7e47-b9d7-6f20137d6bd8",
+   CellTags->"FiniteEnumeration"],
+  Cell[32977, 847, 513, 11, 22, "Print",ExpressionUUID->"b409af8b-9eb2-e04a-82f4-1a764bb5c04d",
+   CellTags->"FiniteEnumeration"],
+  Cell[33493, 860, 513, 11, 22, "Print",ExpressionUUID->"386f688e-119e-6840-a629-71d32673a84d",
+   CellTags->"FiniteEnumeration"],
+  Cell[34009, 873, 513, 11, 22, "Print",ExpressionUUID->"9b275908-b828-4046-ba98-d476530986b3",
+   CellTags->"FiniteEnumeration"],
+  Cell[34525, 886, 513, 11, 22, "Print",ExpressionUUID->"7e3bfd07-319e-674c-b243-9434a4aacc3d",
+   CellTags->"FiniteEnumeration"],
+  Cell[35041, 899, 513, 11, 22, "Print",ExpressionUUID->"27eb2dc9-a99f-f345-9065-c3365fc96ee8",
+   CellTags->"FiniteEnumeration"],
+  Cell[35557, 912, 661, 15, 22, "Print",ExpressionUUID->"a8ebc6ad-8bda-ea40-8779-f8e21e01b5df",
+   CellTags->"FiniteEnumeration"]},
+ "GeometryDefinitions"->{
+  Cell[25425, 659, 2725, 66, 887, "Input",ExpressionUUID->"e28dc309-2c5a-f34c-86e4-51422aecd301",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"GeometryDefinitions"]},
+ "GroupData"->{
+  Cell[3228, 99, 790, 20, 222, "Input",ExpressionUUID->"2aa46a6d-92f7-b44f-9dc0-30443ab2bc23",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"GroupData"]},
+ "InterpolationBasis"->{
+  Cell[6530, 180, 548, 16, 157, "Input",ExpressionUUID->"15dce28a-cc7e-d94e-a4c6-02630c59016b",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"InterpolationBasis"]},
+ "PaperCases"->{
+  Cell[43669, 1117, 6028, 124, 985, "Input",ExpressionUUID->"82905bf5-f6f4-ad4d-ae4f-1ded887beb8a",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"PaperCases"]},
+ "PolynomialChecks"->{
+  Cell[11112, 304, 3776, 85, 1196, "Input",ExpressionUUID->"d9ac62f4-d805-8d49-bb91-8b83ac313323",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"PolynomialChecks"],
+  Cell[14913, 393, 520, 12, 22, "Print",ExpressionUUID->"7e45086c-d377-e74f-ac03-742b0e5c2775",
+   CellTags->"PolynomialChecks"],
+  Cell[15436, 407, 518, 12, 22, "Print",ExpressionUUID->"d5de4f73-c740-174c-ac2e-19eb7c5b3190",
+   CellTags->"PolynomialChecks"],
+  Cell[15957, 421, 518, 12, 22, "Print",ExpressionUUID->"7e8b4e99-e872-5f44-a819-aa36a851f0ad",
+   CellTags->"PolynomialChecks"],
+  Cell[16478, 435, 520, 12, 22, "Print",ExpressionUUID->"ec026297-c75c-844b-9784-82ffa633eb53",
+   CellTags->"PolynomialChecks"],
+  Cell[17001, 449, 530, 12, 22, "Print",ExpressionUUID->"7ffcd311-f2fb-9c43-b63b-762567a2dd7f",
+   CellTags->"PolynomialChecks"],
+  Cell[17534, 463, 528, 12, 22, "Print",ExpressionUUID->"81a1d601-9c8b-814d-9d55-dc8ca014e8c8",
+   CellTags->"PolynomialChecks"],
+  Cell[18065, 477, 528, 12, 22, "Print",ExpressionUUID->"faa7c541-d03f-d24f-a07a-0f48a6c200b5",
+   CellTags->"PolynomialChecks"],
+  Cell[18596, 491, 530, 12, 22, "Print",ExpressionUUID->"fb415e8d-50be-a34c-b2c1-c73e6dc5b129",
+   CellTags->"PolynomialChecks"],
+  Cell[19129, 505, 528, 12, 22, "Print",ExpressionUUID->"9833272d-ca68-104f-bd99-1b47cd1b11b9",
+   CellTags->"PolynomialChecks"],
+  Cell[19660, 519, 530, 12, 22, "Print",ExpressionUUID->"e3c1b119-27a7-724c-9fee-beca4282c44e",
+   CellTags->"PolynomialChecks"],
+  Cell[20193, 533, 530, 12, 22, "Print",ExpressionUUID->"7ff50a4d-cde0-144e-a2c1-6e289695ad43",
+   CellTags->"PolynomialChecks"],
+  Cell[20726, 547, 1014, 25, 207, "Print",ExpressionUUID->"5d0b667d-d2e6-7846-8165-7deea22a3b08",
+   CellTags->"PolynomialChecks"],
+  Cell[21743, 574, 464, 11, 22, "Print",ExpressionUUID->"685300e6-e92f-2a4f-a3a0-7382c050546c",
+   CellTags->"PolynomialChecks"]},
+ "PolynomialHelpers"->{
+  Cell[9491, 252, 1596, 48, 660, "Input",ExpressionUUID->"37f9471c-cbc1-d240-9062-884532bbf0f8",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"PolynomialHelpers"]},
+ "Regions"->{
+  Cell[4021, 121, 1947, 44, 612, "Input",ExpressionUUID->"5cb101e5-3784-dd4e-bbac-44c6447e4925",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"Regions"]},
+ "RepresentativeHypotheses"->{
+  Cell[37890, 975, 2348, 61, 855, "Input",ExpressionUUID->"b0e8e1a8-28ba-8745-93d5-80845b0d008a",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"RepresentativeHypotheses"]},
+ "RepresentativeMatching"->{
+  Cell[41306, 1060, 941, 26, 287, "Input",ExpressionUUID->"bfcd0174-4cc5-ac43-a356-690897cac8fb",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"RepresentativeMatching"]},
+ "Settings"->{
+  Cell[2806, 82, 419, 15, 125, "Input",ExpressionUUID->"548dad49-25a7-df46-b419-45576ab99a11",
+   Evaluatable->True,
+   CellOpen->True,
+   CellTags->"Settings"]}
+ }
+*)
+(*CellTagsIndex
+CellTagsIndex->{
+ {"ClassificationReport", 63363, 1529},
+ {"FiniteEnumeration", 63974, 1540},
+ {"GeometryDefinitions", 65223, 1561},
+ {"GroupData", 65416, 1566},
+ {"InterpolationBasis", 65605, 1571},
+ {"PaperCases", 65796, 1576},
+ {"PolynomialChecks", 65989, 1581},
+ {"PolynomialHelpers", 67880, 1612},
+ {"Regions", 68068, 1617},
+ {"RepresentativeHypotheses", 68263, 1622},
+ {"RepresentativeMatching", 68474, 1627},
+ {"Settings", 68669, 1632}
+ }
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[607, 23, 110, 0, 96, "Title",ExpressionUUID->"5eb3e363-a93a-6c4a-a593-90144b416a7a"],
+Cell[720, 25, 164, 3, 52, "Subtitle",ExpressionUUID->"fbabc7df-73f6-a744-a487-9ac769db138e"],
+Cell[887, 30, 525, 10, 55, "Text",ExpressionUUID->"8cb39cc9-374c-714e-aa39-5be1ded510d6"],
+Cell[1415, 42, 750, 22, 77, "Text",ExpressionUUID->"6d2c65cb-f52d-7f44-a49c-6e42ef82f1c3"],
+Cell[CellGroupData[{
+Cell[2190, 68, 96, 0, 66, "Section",ExpressionUUID->"3fe5af90-c501-5642-bc06-53f1aaf49954"],
+Cell[2289, 70, 514, 10, 77, "Text",ExpressionUUID->"0e658cde-4e8e-0d4f-aeaa-7dfda4c8c0ee"],
+Cell[2806, 82, 419, 15, 125, "Input",ExpressionUUID->"548dad49-25a7-df46-b419-45576ab99a11",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"Settings"],
+Cell[3228, 99, 790, 20, 222, "Input",ExpressionUUID->"2aa46a6d-92f7-b44f-9dc0-30443ab2bc23",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"GroupData"],
+Cell[4021, 121, 1947, 44, 612, "Input",ExpressionUUID->"5cb101e5-3784-dd4e-bbac-44c6447e4925",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"Regions"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6005, 170, 111, 0, 66, "Section",ExpressionUUID->"9e36adf8-f135-1349-a89b-107b6556d590"],
+Cell[6119, 172, 408, 6, 55, "Text",ExpressionUUID->"08856e4e-3bfb-c141-bb94-12775e4ac061"],
+Cell[6530, 180, 548, 16, 157, "Input",ExpressionUUID->"15dce28a-cc7e-d94e-a4c6-02630c59016b",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"InterpolationBasis"],
+Cell[CellGroupData[{
+Cell[7103, 200, 104, 0, 53, "Subsection",ExpressionUUID->"d34ff8f9-4ae7-1e46-b62c-460331695d0a"],
+Cell[7210, 202, 645, 11, 99, "Text",ExpressionUUID->"1a22620e-a6e0-a146-bd90-d1bc1fad3f46"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7892, 218, 118, 0, 53, "Subsection",ExpressionUUID->"d2bb261a-ae5a-fb4c-8fce-02f464bb8bda"],
+Cell[8013, 220, 569, 13, 78, "Text",ExpressionUUID->"57dcdd7a-aab6-ed48-9c43-c46d64c745a7"],
+Cell[8585, 235, 563, 8, 77, "Text",ExpressionUUID->"f7f9ce92-6a56-5a48-b891-db30ae1c2099"],
+Cell[9151, 245, 337, 5, 55, "Text",ExpressionUUID->"2807b0ac-9a27-3d4a-839e-6cd4a9f8c2cc"],
+Cell[9491, 252, 1596, 48, 660, "Input",ExpressionUUID->"37f9471c-cbc1-d240-9062-884532bbf0f8",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"PolynomialHelpers"],
+Cell[CellGroupData[{
+Cell[11112, 304, 3776, 85, 1196, "Input",ExpressionUUID->"d9ac62f4-d805-8d49-bb91-8b83ac313323",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"PolynomialChecks"],
+Cell[CellGroupData[{
+Cell[14913, 393, 520, 12, 22, "Print",ExpressionUUID->"7e45086c-d377-e74f-ac03-742b0e5c2775",
+ CellTags->"PolynomialChecks"],
+Cell[15436, 407, 518, 12, 22, "Print",ExpressionUUID->"d5de4f73-c740-174c-ac2e-19eb7c5b3190",
+ CellTags->"PolynomialChecks"],
+Cell[15957, 421, 518, 12, 22, "Print",ExpressionUUID->"7e8b4e99-e872-5f44-a819-aa36a851f0ad",
+ CellTags->"PolynomialChecks"],
+Cell[16478, 435, 520, 12, 22, "Print",ExpressionUUID->"ec026297-c75c-844b-9784-82ffa633eb53",
+ CellTags->"PolynomialChecks"],
+Cell[17001, 449, 530, 12, 22, "Print",ExpressionUUID->"7ffcd311-f2fb-9c43-b63b-762567a2dd7f",
+ CellTags->"PolynomialChecks"],
+Cell[17534, 463, 528, 12, 22, "Print",ExpressionUUID->"81a1d601-9c8b-814d-9d55-dc8ca014e8c8",
+ CellTags->"PolynomialChecks"],
+Cell[18065, 477, 528, 12, 22, "Print",ExpressionUUID->"faa7c541-d03f-d24f-a07a-0f48a6c200b5",
+ CellTags->"PolynomialChecks"],
+Cell[18596, 491, 530, 12, 22, "Print",ExpressionUUID->"fb415e8d-50be-a34c-b2c1-c73e6dc5b129",
+ CellTags->"PolynomialChecks"],
+Cell[19129, 505, 528, 12, 22, "Print",ExpressionUUID->"9833272d-ca68-104f-bd99-1b47cd1b11b9",
+ CellTags->"PolynomialChecks"],
+Cell[19660, 519, 530, 12, 22, "Print",ExpressionUUID->"e3c1b119-27a7-724c-9fee-beca4282c44e",
+ CellTags->"PolynomialChecks"],
+Cell[20193, 533, 530, 12, 22, "Print",ExpressionUUID->"7ff50a4d-cde0-144e-a2c1-6e289695ad43",
+ CellTags->"PolynomialChecks"],
+Cell[20726, 547, 1014, 25, 207, "Print",ExpressionUUID->"5d0b667d-d2e6-7846-8165-7deea22a3b08",
+ CellTags->"PolynomialChecks"],
+Cell[21743, 574, 464, 11, 22, "Print",ExpressionUUID->"685300e6-e92f-2a4f-a3a0-7382c050546c",
+ CellTags->"PolynomialChecks"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[22280, 593, 126, 0, 66, "Section",ExpressionUUID->"0d73ba69-8863-9d45-8814-f6d281641bc4"],
+Cell[22409, 595, 401, 8, 55, "Text",ExpressionUUID->"bfa806ee-7e51-3945-a021-10ea694de94f"],
+Cell[CellGroupData[{
+Cell[22835, 607, 125, 0, 53, "Subsection",ExpressionUUID->"1cd21b28-2e40-3c4b-98e1-ce7aba72dd8a"],
+Cell[22963, 609, 535, 7, 77, "Text",ExpressionUUID->"bdcc1be3-1511-5941-8bc8-98eeccf6af42"],
+Cell[23501, 618, 675, 9, 99, "Text",ExpressionUUID->"698f416c-ee4e-3340-97b0-8e96087e2aad"],
+Cell[24179, 629, 502, 7, 77, "Text",ExpressionUUID->"ba892d75-78d4-dc43-b036-7b25e65b8cdf"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[24718, 641, 109, 0, 53, "Subsection",ExpressionUUID->"b47d431a-a177-4e49-8049-0277f653a7eb"],
+Cell[24830, 643, 592, 14, 78, "Text",ExpressionUUID->"e87586e4-b596-b046-967b-c444725ad6ae"],
+Cell[25425, 659, 2725, 66, 887, "Input",ExpressionUUID->"e28dc309-2c5a-f34c-86e4-51422aecd301",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"GeometryDefinitions"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[28187, 730, 108, 0, 53, "Subsection",ExpressionUUID->"3653d27c-2dcb-224d-8bbb-4fd90486e89e"],
+Cell[28298, 732, 614, 12, 77, "Text",ExpressionUUID->"d13b35ab-bf29-6044-9e89-889dbcafd976"],
+Cell[28915, 746, 415, 6, 55, "Text",ExpressionUUID->"34c79cda-f61c-1a4f-a9f8-b6bcd579b3bd"],
+Cell[CellGroupData[{
+Cell[29355, 756, 2569, 61, 855, "Input",ExpressionUUID->"c67ba404-ddd7-7949-970a-7efd76314e41",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"FiniteEnumeration"],
+Cell[CellGroupData[{
+Cell[31949, 821, 511, 11, 22, "Print",ExpressionUUID->"5f0fa485-fcb2-d64b-8224-dde7eded66e0",
+ CellTags->"FiniteEnumeration"],
+Cell[32463, 834, 511, 11, 22, "Print",ExpressionUUID->"84c17339-8d42-7e47-b9d7-6f20137d6bd8",
+ CellTags->"FiniteEnumeration"],
+Cell[32977, 847, 513, 11, 22, "Print",ExpressionUUID->"b409af8b-9eb2-e04a-82f4-1a764bb5c04d",
+ CellTags->"FiniteEnumeration"],
+Cell[33493, 860, 513, 11, 22, "Print",ExpressionUUID->"386f688e-119e-6840-a629-71d32673a84d",
+ CellTags->"FiniteEnumeration"],
+Cell[34009, 873, 513, 11, 22, "Print",ExpressionUUID->"9b275908-b828-4046-ba98-d476530986b3",
+ CellTags->"FiniteEnumeration"],
+Cell[34525, 886, 513, 11, 22, "Print",ExpressionUUID->"7e3bfd07-319e-674c-b243-9434a4aacc3d",
+ CellTags->"FiniteEnumeration"],
+Cell[35041, 899, 513, 11, 22, "Print",ExpressionUUID->"27eb2dc9-a99f-f345-9065-c3365fc96ee8",
+ CellTags->"FiniteEnumeration"],
+Cell[35557, 912, 661, 15, 22, "Print",ExpressionUUID->"a8ebc6ad-8bda-ea40-8779-f8e21e01b5df",
+ CellTags->"FiniteEnumeration"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[36291, 935, 126, 0, 66, "Section",ExpressionUUID->"2a3654ab-48cd-1547-b4ca-1a1e34f437be"],
+Cell[CellGroupData[{
+Cell[36442, 939, 103, 0, 53, "Subsection",ExpressionUUID->"8a8d2207-09fe-ff4c-a62d-70f5c3591be0"],
+Cell[36548, 941, 789, 19, 78, "Text",ExpressionUUID->"655c7eca-416c-b746-8144-15c6a4b3694e"],
+Cell[37340, 962, 547, 11, 77, "Text",ExpressionUUID->"343115a1-d518-c041-8694-dd7514e17d88"],
+Cell[37890, 975, 2348, 61, 855, "Input",ExpressionUUID->"b0e8e1a8-28ba-8745-93d5-80845b0d008a",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"RepresentativeHypotheses"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[40275, 1041, 113, 0, 53, "Subsection",ExpressionUUID->"56ec8bd3-67c0-e94e-bfe8-bdb837d3f5bb"],
+Cell[40391, 1043, 436, 6, 77, "Text",ExpressionUUID->"a86c87f8-5240-5a4d-b63c-148eb6e08641"],
+Cell[40830, 1051, 473, 7, 77, "Text",ExpressionUUID->"80c30c02-b45c-614a-afc4-9b2cd2a3ec5f"],
+Cell[41306, 1060, 941, 26, 287, "Input",ExpressionUUID->"bfcd0174-4cc5-ac43-a356-690897cac8fb",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"RepresentativeMatching"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[42296, 1092, 119, 0, 66, "Section",ExpressionUUID->"871eea09-ee7e-f24d-aa96-f0fec04a8754"],
+Cell[42418, 1094, 710, 12, 99, "Text",ExpressionUUID->"222b2a11-597e-ef4f-b56b-ee5137a193a0"],
+Cell[43131, 1108, 535, 7, 77, "Text",ExpressionUUID->"8a021c6b-0151-8d44-930b-6b21e2575c8c"],
+Cell[43669, 1117, 6028, 124, 985, "Input",ExpressionUUID->"82905bf5-f6f4-ad4d-ae4f-1ded887beb8a",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"PaperCases"],
+Cell[CellGroupData[{
+Cell[49722, 1245, 2433, 62, 823, "Input",ExpressionUUID->"a74c8ff3-75d0-0b40-a6b3-ee0ed9c1dd48",
+ Evaluatable->True,
+ CellOpen->True,
+ CellTags->"ClassificationReport"],
+Cell[CellGroupData[{
+Cell[52180, 1311, 9103, 155, 972, "Print",ExpressionUUID->"2bfeb970-0ef4-234e-917b-aa958f4bd43a",
+ CellTags->"ClassificationReport"],
+Cell[61286, 1468, 466, 11, 22, "Print",ExpressionUUID->"7c49e533-85f7-7146-895a-19f505c797c2",
+ CellTags->"ClassificationReport"],
+Cell[61755, 1481, 510, 11, 22, "Print",ExpressionUUID->"a1286cf4-deb3-7b4d-85e0-e07e259d6d79",
+ CellTags->"ClassificationReport"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[62326, 1499, 79, 0, 66, "Section",ExpressionUUID->"a2070f9d-f503-314f-88d7-584840ae5e7e"],
+Cell[62408, 1501, 449, 9, 55, "Text",ExpressionUUID->"7580adfe-6c3c-6e4e-b842-8ea99e55c34f"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
