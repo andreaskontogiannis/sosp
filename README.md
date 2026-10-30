@@ -7,7 +7,7 @@ The notebook checks the prescribed polynomial exclusion inequalities, enumerates
 ## Requirements and running
 
 - Wolfram Mathematica with a notebook interface. The supplied notebook was saved with Wolfram 14.3; compatibility with older versions has not been tested here.
-- The verification notebook, `SOSP_Complete_Verification.nb` (downloaded copies may have a numbered suffix).
+- The verification notebook, `SOSP_Complete_Verification_analysis.nb` (downloaded copies may have a numbered suffix).
 - No external packages or data files are required.
 
 1. Open the notebook in Mathematica.
